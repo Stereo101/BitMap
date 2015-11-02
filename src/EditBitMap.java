@@ -14,31 +14,15 @@ public class EditBitMap {
 	public static void main(String[] args) throws IOException {
 		File file = new File("temp.txt");
 		Path path = Paths.get(file.getAbsolutePath());
-		path = path.getParent();
-		
-		String spath = path.toString();
-		char slashDir = '-';
-		
-		for(int i = spath.length() - 1; i>0; i--) {
-			if(spath.charAt(i)=='\\' || spath.charAt(i) == '/') {
-				slashDir = spath.charAt(i);
-			}
-		}
-		
-		path = Paths.get(spath + slashDir + "input.bmp");
-		
-		System.out.println(path.toString());
-		
 		
 		byte[] image = null;
 		
 		try {
-			image = Files.readAllBytes(path);
+			image = Files.readAllBytes(path.resolveSibling("input.bmp"));
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
-		
 		
 		BitMap lain = new BitMap(image,1);
 		lain.reloaderDemon(1,2);
@@ -55,20 +39,21 @@ class BitMap {
 	long Size;
 	long Width;
 	long Height;
+	
 	long Planes;
 	long BitCount;
 	long NumberOfColors;
+	
 	long Compression;
 	long ImageSize;
 	long XpixelsPerM;
+	
 	long YpixelsPerM;
 	long ColorsUsed;
 	long ColorsImportant;
 	
 	long SizeColorTable;
-	
 	byte[] Header;
-	
 	byte[][] pixelArray;
 	
 	
