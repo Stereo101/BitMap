@@ -18,9 +18,9 @@ public class EditBitMap {
 		BitMap lain = new BitMap("input",1);
 		Selector choice = new Selector(lain);
 		Demon belial = new Demon(choice);
-		choice.all(1,"-r");
-		choice.all(2);
-		belial.swap(1,2);
+		choice.all("1","-r");
+		choice.all("2");
+		belial.swap("1","2");
 		
 		lain.genNewBitMap("output");
 	}
@@ -54,6 +54,8 @@ class BitMap {
 	byte[][][] pixelsHistory = new byte[100][][];
 	int histCount = 0;;
 	int redos = 0;
+	
+	String outputName = "output";
 	
 	
 	
@@ -161,7 +163,9 @@ class BitMap {
 	
 	//Creates a new bitmap in local directly
 	//Combines header and pixelArray back together into a valid bitmap
+	void genNewBitMap() throws IOException{genNewBitMap(outputName);}
 	void genNewBitMap(String name) throws IOException {
+		outputName = name;
 		byte[] out = new byte[(int)FileSize];
 		for(int i = 0; i<(int)Header.length; i++) {
 			out[i] = Header[i];
@@ -171,7 +175,7 @@ class BitMap {
 			out[i] = pixels[i/(int)(BitCount/8)][i%(int)(BitCount/8)];
 		}
 		
-		FileOutputStream fos = new FileOutputStream(name + ".bmp");
+		FileOutputStream fos = new FileOutputStream(outputName + ".bmp");
 		fos.write(out);
 		fos.close();
 	}
@@ -438,19 +442,37 @@ class Selector {
 	BitMap map;
 	
 	int selectedCount;
-	HashMap<Integer,int[]> selection = new HashMap<Integer,int[]>();
+	HashMap<String,int[]> selection = new HashMap<String,int[]>();
 	
 	Selector(BitMap target) {
 		this.map = target;
 	}
 	
-	int all(int spot){return all(spot,"");}
-	int all(int spot, String options){
+	void target(BitMap target) {
+		this.map = target;
+	}
+	
+	void clear() {
+		selection.clear();
+		System.out.println("Selector is now empty");
+	}
+	
+	void remove(String key) {
+		if(selection.containsKey(key)) {
+			selection.remove(key);
+		} else {
+			System.out.println("Selector key " + key + " was empty");
+		}
+	}
+	
+	String all(String key){return all(key,"");}
+	
+	String all(String key, String options){
 		boolean reverse = false;
-		if(options.contains("-r")) {reverse = true;}
+		if(options.contains("-rev")) {reverse = true;}
 		
-		selection.put(spot, new int[map.pixels.length]);
-		int[] hold = selection.get(spot);
+		selection.put(key, new int[map.pixels.length]);
+		int[] hold = selection.get(key);
 		for(int i = 0; i< map.pixels.length; i++) {
 			if(!reverse) {
 				hold[i] = i;
@@ -458,25 +480,25 @@ class Selector {
 				hold[i] = map.pixels.length - (i+1);
 			}
 		}
-		return spot;
+		return key;
 	}
 	
 	//TODO
-	int vert(int spot, double start, double end) {
-		selection.put(spot, new int[map.pixels.length]);
-		int[] hold = selection.get(spot);
+	String vert(String key, double start, double end) {
+		selection.put(key, new int[map.pixels.length]);
+		int[] hold = selection.get(key);
 		
 		
-		return spot;
+		return key;
 	}
 	
 	//TODO
-	int horz(int spot, double start, double end) {
-		selection.put(spot, new int[map.pixels.length]);
-		int[] hold = selection.get(spot);
+	String horz(String key, double start, double end) {
+		selection.put(key, new int[map.pixels.length]);
+		int[] hold = selection.get(key);
 		
 		
-		return spot;
+		return key;
 	}
 }
 
@@ -487,13 +509,12 @@ class Demon {
 	Demon(Selector target) {
 		this.sel = target;
 	}
-	
-	//Overload redirectors
-	void fuzz(int selIndex) {fuzz(new int[]{selIndex},"");}
-	void fuzz(int selIndex, String options) {fuzz(new int[]{selIndex},options);}
-	
-	void fuzz(int[] selIndex, String options) {
-		for(int s : selIndex) {
+
+	//
+	//Fuzz
+	//
+	void fuzz(String[] selIndex, String options) {
+		for(String s : selIndex) {
 			boolean undoable = options.contains("-u");
 			
 			
@@ -518,13 +539,17 @@ class Demon {
 			}
 		}
 	}
-	
 	//Overload redirectors
-	void swap(int selIndex1, int selIndex2) {swap(new int[]{selIndex1},new int[]{selIndex2}, "");}
-	void swap(int selIndex1, int selIndex2, String options) {swap(new int[]{selIndex1},new int[]{selIndex2}, options);}
-	void swap(int[] selIndex1, int[] selIndex2) {swap(selIndex1,selIndex2, "");}
+	void fuzz(String selIndex) {fuzz(new String[]{selIndex},"");}
+	void fuzz(String selIndex, String options) {fuzz(new String[]{selIndex},options);}
 	
-	void swap(int[] selIndex1,int[] selIndex2, String options) {
+	
+	
+	
+	//
+	//SWAP
+	//
+	void swap(String[] selIndex1,String[] selIndex2, String options) {
 		for(int s = 0; s<selIndex1.length && s<selIndex2.length; s++) {
 			if(sel.selection.containsKey(selIndex1[s]) && sel.selection.containsKey(selIndex2[s])) {
 				int[] hold1 = sel.selection.get(selIndex1[s]);
@@ -538,11 +563,74 @@ class Demon {
 			}
 		}
 	}
+	//Overload redirectors
+	void swap(String selIndex1, String selIndex2) {swap(new String[]{selIndex1},new String[]{selIndex2}, "");}
+	void swap(String selIndex1, String selIndex2, String options) {swap(new String[]{selIndex1},new String[]{selIndex2}, options);}
+	void swap(String[] selIndex1, String[] selIndex2) {swap(selIndex1,selIndex2, "");}
 	
 }
 
-//TODO
-class Loader {
+/*	Brain storming console function
+ * 
+ * 	Quick overview of framework...
+ * 
+ * 		BitMap <- Selector <- Demon
+ * 
+ * 		BitMap holds all data about a loaded image
+ * 		Selector holds an int array, refering to the placement of pixels within a BitMap, but can be abstracted away to other images as well
+ * 			ie. a 10 by 10 box refering to a 400x400 image would index very different pixels than a 10 by 10 box in a 350x350 image
+ * 			But a 10 by 10 box in 2 different 400x400 images would be exactly the same
+ * 			
+ * 
+ * 
+ * Ex:
+ * 
+ * 	BitMap new map from input   | Creates a new BitMap named "map" and reads input.bmp into it
+ * 	Selector new lain  			| Creates a new selector
+ *	Demon new belial   			| Creates a new demon called belial
+ *
+ *	lain targets map 			| Sets lain to target map instance of BitMap
+ *	belial targets lain			| Sets belial to target lain's selections
+ *	
+ *	Since this chain needs to be created to accomplish anything, Maybe make a shorthand function for it to be called with each new instance of console.
+ *	Something like:
+ *	
+ *	chain map lain belial from input | chain <BitMap name> <Selector name> <Demon name> from <file name>
+ *	
+ *	When a new name is taken, check all HashMaps for matching names, not just the type of object it is
+ *	Prevent overwrites of names by default
+ *	Allow instances of these classes to be deleted
+ *
+ *	Next we use these instances to call functions
+ *	
+ *Ex:
+ *	
+ *	lain all 1 <option string> | Should call  lain.all(1,<option string>);
+ *
+ *	General form:
+ *
+ *	<Selector instance> <Selector method> <Selection instance name> <Options String>
+ *
+ *		The hardest part of getting it to work right will be matching required parameters to the correct places
+ *		It might be easier just to simplify all functions to use required options instead of required parameters
+ *
+ *		because of the way the functions are written, a "bash like command" should be easy to create a general case of.  lain all 1 -rev -u, calls the selector lain, which call the func all with options reverse and undoable
+ *		The options come all at the end for now, because you can simply read the trailing characters as a string and pass it on without any heavy editing
+ *		A more refined version might look like "lain all -r -u 1", but thats harder to do.
+ *
+ *		I would eventually like for options to be able to convey numerical values like -s.5 for "Start 50% through the index"
+ *		That would be build function side though
+ *
+ *		Demon function calls would be similarly syntax'd.
+ * 
+ * 
+ */
+class Console {
+	
+	//HashMaps to hold instances of BitMaps, Selectors, and Demons.
+	HashMap<String,BitMap> maps = new HashMap<String,BitMap>();
+	HashMap<String,Selector> selectors = new HashMap<String,Selector>();
+	HashMap<String,Demon> demons = new HashMap<String,Demon>();
+	
 	
 }
-
