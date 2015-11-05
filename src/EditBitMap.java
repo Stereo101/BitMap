@@ -142,7 +142,7 @@ class BitMap {
 		for(int i = 0; i<(int)DataOffset; i++) {
 			Header[i] = data[i];
 			if(i%8 == 0) { System.out.println();}
-			System.out.printf("%5s" ,(int)Header[i]);
+			System.out.printf("%5s" ,(Integer.toHexString(((int)Header[i]) & 0xFF)));
 		}
 		
 		
@@ -436,13 +436,25 @@ class BitMap {
 	}
 }
 
-//Takes BitMap as input, and create an array of selected pixels, in the order they would be selected
-//Hold selections in a 
+
+//Holds a selection, and a pointer to the BitMap it came from
+//This pointer will keep an otherwise deleted BitMap alive in memory
+//When deleting an instance of bitmap, search through cluster instances as well.
+class Cluster {
+	BitMap map;
+	int[] selected;
+	
+	Cluster(BitMap map, int[] selected) {
+		this.map = map;
+		this.selected = selected;
+	}
+}
+
 class Selector {
 	BitMap map;
 	
 	int selectedCount;
-	HashMap<String,int[]> selection = new HashMap<String,int[]>();
+	HashMap<String,Cluster> selection = new HashMap<String,Cluster>();
 	
 	Selector(BitMap target) {
 		this.map = target;
@@ -471,8 +483,8 @@ class Selector {
 		boolean reverse = false;
 		if(options.contains("-rev")) {reverse = true;}
 		
-		selection.put(key, new int[map.pixels.length]);
-		int[] hold = selection.get(key);
+		selection.put(key, new Cluster(map,new int[map.pixels.length]));
+		int[] hold = selection.get(key).selected;
 		for(int i = 0; i< map.pixels.length; i++) {
 			if(!reverse) {
 				hold[i] = i;
@@ -480,24 +492,6 @@ class Selector {
 				hold[i] = map.pixels.length - (i+1);
 			}
 		}
-		return key;
-	}
-	
-	//TODO
-	String vert(String key, double start, double end) {
-		selection.put(key, new int[map.pixels.length]);
-		int[] hold = selection.get(key);
-		
-		
-		return key;
-	}
-	
-	//TODO
-	String horz(String key, double start, double end) {
-		selection.put(key, new int[map.pixels.length]);
-		int[] hold = selection.get(key);
-		
-		
 		return key;
 	}
 }
@@ -523,7 +517,7 @@ class Demon {
 			}
 			
 			if(sel.selection.containsKey(s)) {
-				int[] hold = sel.selection.get(s);
+				int[] hold = sel.selection.get(s).selected;
 				
 				for(int i = 0; i<hold.length; i++) {
 					if(Math.random() > .5) {
@@ -552,8 +546,8 @@ class Demon {
 	void swap(String[] selIndex1,String[] selIndex2, String options) {
 		for(int s = 0; s<selIndex1.length && s<selIndex2.length; s++) {
 			if(sel.selection.containsKey(selIndex1[s]) && sel.selection.containsKey(selIndex2[s])) {
-				int[] hold1 = sel.selection.get(selIndex1[s]);
-				int[] hold2 = sel.selection.get(selIndex2[s]);
+				int[] hold1 = sel.selection.get(selIndex1[s]).selected;
+				int[] hold2 = sel.selection.get(selIndex2[s]).selected;
 				
 				for(int i = 0; i<hold1.length && i<hold2.length; i++) {
 					BitMap.swapByteArray(sel.map.pixels[hold1[i]],sel.map.pixels[hold2[i]]);
@@ -577,13 +571,14 @@ class Demon {
  * 		BitMap <- Selector <- Demon
  * 
  * 		BitMap holds all data about a loaded image
- * 		Selector holds an int array, refering to the placement of pixels within a BitMap, but can be abstracted away to other images as well
- * 			ie. a 10 by 10 box refering to a 400x400 image would index very different pixels than a 10 by 10 box in a 350x350 image
- * 			But a 10 by 10 box in 2 different 400x400 images would be exactly the same
+ * 		Selector holds an int array, refering to the placement of pixels and a pointer to what BitMap it came from
  * 			
  * 
- * 
  * Ex:
+ * 
+ * 	COMMANDS					| RESULTS
+ * 
+ * 	**
  * 
  * 	BitMap new map from input   | Creates a new BitMap named "map" and reads input.bmp into it
  * 	Selector new lain  			| Creates a new selector
@@ -591,8 +586,11 @@ class Demon {
  *
  *	lain targets map 			| Sets lain to target map instance of BitMap
  *	belial targets lain			| Sets belial to target lain's selections
+ *
+ *	**
  *	
- *	Since this chain needs to be created to accomplish anything, Maybe make a shorthand function for it to be called with each new instance of console.
+ *	Because the demon needs a path to the bitmap,
+ *	the (BitMap <- Selector <- Demon) chain needs to be created to accomplish anything. Maybe make a shorthand function for it to be called with each new instance of console.
  *	Something like:
  *	
  *	chain map lain belial from input | chain <BitMap name> <Selector name> <Demon name> from <file name>
@@ -609,7 +607,7 @@ class Demon {
  *
  *	General form:
  *
- *	<Selector instance> <Selector method> <Selection instance name> <Options String>
+ *	<Selector instance> <Selector method> <Cluster instance name> <Options String>
  *
  *		The hardest part of getting it to work right will be matching required parameters to the correct places
  *		It might be easier just to simplify all functions to use required options instead of required parameters
@@ -619,10 +617,9 @@ class Demon {
  *		A more refined version might look like "lain all -r -u 1", but thats harder to do.
  *
  *		I would eventually like for options to be able to convey numerical values like -s.5 for "Start 50% through the index"
- *		That would be build function side though
+ *		That would be built function side though
  *
  *		Demon function calls would be similarly syntax'd.
- * 
  * 
  */
 class Console {
@@ -631,6 +628,5 @@ class Console {
 	HashMap<String,BitMap> maps = new HashMap<String,BitMap>();
 	HashMap<String,Selector> selectors = new HashMap<String,Selector>();
 	HashMap<String,Demon> demons = new HashMap<String,Demon>();
-	
 	
 }
