@@ -4,6 +4,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -11,6 +14,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.Byte;
 import java.util.Scanner;
+
+
 
 
 public class EditBitMap {
@@ -57,12 +62,39 @@ class BitMap {
 	byte[][] pixels;
 	
 	byte[][][] pixelsHistory = new byte[100][][];
-	int histCount = 0;;
+	int histCount = 0;
 	int redos = 0;
 	
 	String outputName = "output";
 	
-	
+	public String toString() {
+		StringBuilder b = new StringBuilder();
+		
+		//b.append("reserved ").append(reserved).append("\n");
+		//b.append("DataOffset ").append(DataOffset).append("\n");
+		//b.append("Size ").append(Size).append("\n");
+		
+		b.append("Width ").append(Width).append("\n");
+		b.append("Height ").append(Height).append("\n");
+		//b.append("Planes ").append(Planes).append("\n");
+		
+		b.append("BitCount ").append(BitCount).append("\n");
+		b.append("NumberOfColors ").append(NumberOfColors).append("\n");
+		//b.append("Compression ").append(Compression).append("\n");
+		
+		b.append("ImageSize ").append(ImageSize).append("\n");
+		//b.append("XpixelsPerM ").append(XpixelsPerM).append("\n");
+		//b.append("YpixelsPerM ").append(YpixelsPerM).append("\n");
+		
+		//b.append("ColorsUsed ").append(ColorsUsed).append("\n");
+		//b.append("ColorsImportant ").append(ColorsImportant).append("\n");
+		//b.append("SizeColorTable ").append(SizeColorTable).append("\n");
+		
+		//b.append("Size Header ").append(Header.length).append("\n");
+		b.append("Number of pixels ").append(pixels.length).append("\n");
+		
+		return b.toString();
+	}
 	
 	//Main constructor
 	//
@@ -83,32 +115,15 @@ class BitMap {
 			e.printStackTrace();
 		}
 		
-		
-		System.out.print("\nSignature: ");
-		longFromRange(1,2,data);
-		System.out.print("FileSize: ");
 		FileSize = longFromRange(3,4,data);
-		System.out.print("reserved: ");
 		reserved = longFromRange(7,4,data);
-		System.out.print("DataOffset: ");
 		DataOffset = longFromRange(11,4,data);
-		
-		System.out.print("Size: ");
 		Size = longFromRange(15,4,data);
-		
-		System.out.print("Width: ");
 		Width = longFromRange(19,4,data);
-		
-		System.out.print("Height: ");
 		Height = longFromRange(23,4,data);
-		
-		System.out.print("Planes: ");
 		Planes = longFromRange(27,2,data);
-		
-		System.out.print("BitCount: ");
 		BitCount = longFromRange(29,2,data);
 		
-		System.out.print("Number of Colors: ");
 		switch((int)BitCount) {
 		case(1): NumberOfColors=1; break;
 		case(4): NumberOfColors=16; break;
@@ -116,38 +131,20 @@ class BitMap {
 		case(16): NumberOfColors=65536; break;
 		case(24): NumberOfColors=16777216; break;
 		}
-		System.out.println(NumberOfColors);
 		
-		
-		
-		System.out.print("Compression: ");
 		Compression = longFromRange(31,4,data);
-		
-		System.out.print("ImageSize(After Compression, 0 if uncompressed): ");
 		ImageSize = longFromRange(35,4,data);
-		
-		System.out.print("XpixelsPerM: ");
 		XpixelsPerM = longFromRange(39,4,data);
-		
-		System.out.print("YpixelsPerM: ");
 		YpixelsPerM = longFromRange(43,4,data);
-		
-		System.out.print("ColorsUsed: ");
 		ColorsUsed = longFromRange(47,4,data);
-		
-		System.out.print("Colors important: ");
 		ColorsImportant = longFromRange(51,4,data);
-		
 		SizeColorTable = BitCount >=8 ? 0 : 4*BitCount;
-		System.out.println("SizeColorTable: " + SizeColorTable);
-		
-		
 		
 		Header = new byte[(int)DataOffset];
 		for(int i = 0; i<(int)DataOffset; i++) {
 			Header[i] = data[i];
-			if(i%8 == 0) { System.out.println();}
-			System.out.printf("%5s" ,(Integer.toHexString(((int)Header[i]) & 0xFF)));
+			//if(i%8 == 0) { System.out.println();}
+			//System.out.printf("%5s" ,(Integer.toHexString(((int)Header[i]) & 0xFF)));
 		}
 		
 		
@@ -159,10 +156,9 @@ class BitMap {
 		}
 		
 		pixelsHistory[0] = deepCopyPixels(pixels);
-		
-		System.out.println("\n\n\n");
-		System.out.println("There are "  + pixels.length + " pixels in this image");
 	}
+	
+	
 	
 	
 	
@@ -402,7 +398,7 @@ class BitMap {
 		for(int q = length; q>0; q--) {
 			shiftbuild = (long) (shiftbuild << 8 | data[start + q -2] & 0xFF);
 		}
-		System.out.println(shiftbuild);
+		//System.out.println(shiftbuild);
 		return shiftbuild;
 	}
 	
@@ -442,6 +438,17 @@ class BitMap {
 }
 
 
+class Cluster {
+	BitMap map;
+	int[] selected;
+	
+	Cluster(BitMap map, int[] selected) {
+		this.map = map;
+		this.selected = selected;
+	}
+}
+
+
 //Holds a selection, and a pointer to the BitMap it came from
 //This pointer will keep an otherwise deleted BitMap alive in memory
 //When deleting an instance of bitmap, search through cluster instances as well.
@@ -453,16 +460,6 @@ class Selector {
 	
 	BitMap target;
 	HashMap<String,Cluster> selection = new HashMap<String,Cluster>();
-	
-	class Cluster {
-		BitMap map;
-		int[] selected;
-		
-		Cluster(BitMap map, int[] selected) {
-			this.map = map;
-			this.selected = selected;
-		}
-	}
 	
 	//Constructor
 	Selector(){}
@@ -651,13 +648,48 @@ class Console {
 	String usrInput = "";
 	String words[];
 	
+	
+	
+	
+	//Overload for automated input
+	void in(String input) {
+		this.usrInput = input;
+		words = this.usrInput.toLowerCase().split(" ");
+		System.out.println("Read as words");
+		for(int i = 0; i< words.length; i++) {
+			System.out.print(words[i] + " | ");
+		}
+		System.out.println("\n");
+	}
+	
+	//Version for default usr input
 	void in() {
 		this.usrInput = input.nextLine();
-		words = this.usrInput.split(" ");
+		words = this.usrInput.toLowerCase().split(" ");
+		System.out.println("Read as words");
+		for(int i = 0; i< words.length; i++) {
+			System.out.print(words[i] + " | ");
+		}
+		System.out.println("\n");
 	}
 	
 	static void start() {
 		Console c = new Console();
+		
+		//Auto add input as bitmap
+		c.in("bitmap add input");
+		c.D0_Root();
+		c.in("sel all 1");
+		c.D0_Root();
+		c.in("sel all 2");
+		c.D0_Root();
+		
+		/*
+		c.in("bitmap remove input");
+		c.D0_Root();
+		c.in("bitmap add input");
+		c.D0_Root();
+		*/
 		
 		while(!c.exit) {
 			System.out.print("\n>");
@@ -676,11 +708,39 @@ class Console {
 		}
 	}
 	
+	void removeBitMap(String name) {
+		if(maps.containsKey(name)) {
+			for(Iterator<Entry<String, Cluster>> it = sel.selection.entrySet().iterator(); it.hasNext();) {
+				
+				Map.Entry<String,Cluster> e = it.next();
+				if((maps.get(name)) == (e.getValue().map)) {
+					System.out.println("Removing instance of " + name + " found in selection");
+					it.remove();
+				}
+			}
+			maps.remove(name);
+			System.out.println("Deleted " + name + " from map pool");
+			
+		} else {
+			System.out.println("Bitmap " + name + " not found");
+		}
+	}
+	
 	void addDemon(String name) {
 		if(!demons.containsKey(name)) {
 			demons.put(name, new Demon(sel));
+			System.out.println("Demon " + name + " added");
 		} else {
 			System.out.println("Demon " + name + " already exists.");
+		}
+	}
+	
+	void removeDemon(String name) {
+		if(demons.containsKey(name)) {
+			demons.remove(name);
+			System.out.println("RIP DEVIL");
+		} else {
+			System.out.println("Demon " + name + " not found");
 		}
 	}
 	
@@ -688,16 +748,17 @@ class Console {
 		if(!maps.containsKey(name)) {
 			maps.put(name, new BitMap(name,1));
 			sel.target = maps.get(name);
+			System.out.println(maps.get(name).toString());
 		} else {
 			System.out.println("BitMap " + name + " already exists.");
 		}
 	}
 	
 	void D0_Root() {
-
-		String word = this.words[0];
 		
-		switch(word) {
+		if(words.length < 1) {System.out.println("In D0_Root : expected more words, did you just put a space or something?"); return;}
+		
+		switch(this.words[0]) {
 			case("bitmap"):
 				D1_BitMap();
 				break;
@@ -713,71 +774,125 @@ class Console {
 			case("demon"):
 				D1_Demon();
 				break;
+				
 			case("quit"):
 				System.out.println("Exiting...");
 				this.exit = true; 
 				break;
+				
 			case("help"):
-				D1_help();
+				System.out.println("cmds: \nbitmap ..\nsel ..\ntarget ..\ndemon ..\nquit ..\nlegacy");
 				break;
+			
+			case("legacy"):
+				D1_legacy();
 			default:
-				System.out.println("\"" + word + "\" not found. Try help :)");
+				System.out.println("In D0_Root : did not find cmd \"" + words[0] + "\"");
+			
 		}
 	}
 	
-	void D1_help() {
-		System.out.println("SHIT OUTTA LUCK BUDDY\nHAVNET IMPLEMENTED HELP YET");
+	void D1_legacy() {
+		//TODO: 7 commits in and we have legacy functions to re-implement
 	}
+	
 	
 	void D1_BitMap() {
 		
+		if(words[1] == "help") {
+			System.out.println("BitMap cmds: \nadd <name>\ndel <name>\nundo\nredo");
+		}
+		
 		if(!(words.length > 2)) {
-			System.out.println("expecting more words");
+			System.out.println("In D1_BitMap : expecting more words");
 			return;
 		}
 		
 		switch(words[1]) {
 			case("add"):
-				addBitMap(this.usrInput.split(" ",3)[2]);
+				addBitMap(words[2]);
 				break;
+			
+			case("del"):
 			case("remove"):
+				removeBitMap(words[2]);
 				break;
+			
+			case("undo"):
+				maps.get(words[2]).histUndo();
+				break;
+				
+			case("redo"):
+				maps.get(words[2]).histRedo();
+				break;
+			default:
+				System.out.println("In D1_BitMap : did not find cmd \"" + words[1] + "\"");
 		}
 	}
 	
 	void D1_Demon() {
 		
 		if(!(words.length > 1)) {
-			System.out.println("expecting more words");
+			System.out.println("In D1_Demon: expecting more words");
 			return;
 		}
 		
 		switch(words[1]) {
-		case("add"):
-			break;
-		case("remove"):
-			break;
+		
+			case("add"):
+				addDemon(words[2]);
+				break;
+			
+			case("remove"):
+				removeDemon(words[2]);
+				break;
+			case("help"):
+				System.out.println("Demon cmds: \nadd <name>\nremove <name>");
+				break;
+			
+			default:
+				System.out.println("In D1_Demon : did not find cmd \"" + words[1] + "\"");
+			
 		}
 	}
 	
 	void D1_Selector() {
 		
 		if(!(words.length > 1)) {
-			System.out.println("expecting more words");
+			System.out.println("In D1_Selector: expecting more words");
 			return;
 		}
 		
 		switch(this.words[1]) {
-		case("all"):
-			if(words.length == 3) {
-				sel.all(this.usrInput.split(" ",3)[2]);
-			} else {
-				sel.all(this.usrInput.split(" ",3)[2],this.usrInput.split(" ",3)[3]);
-			}
+			case("all"):
+				if(words.length <= 3) {
+					sel.all(this.usrInput.split(" ",3)[2]);
+				} else {
+					sel.all(this.usrInput.split(" ",3)[2],this.usrInput.split(" ",3)[3]);
+				}
+				
+				System.out.println("Selection add to " + this.usrInput.split(" ",3)[2]);
 			
-			break;
-		case(""):
-			break;
+				break;
+			case("remove"):
+				if(sel.selection.containsKey(this.words[2])) {
+					sel.selection.remove(words[2]);
+					System.out.println("Removed " + words[2]);
+				} else {
+					System.out.println("Did not find " + words[2]);
+				}
+			
+				break;
+			
+			case("show"):
+				System.out.println(sel.selection.keySet());
+				break;
+			case("help"):
+				System.out.println("Selector cmds: \nall <name> <options>\nshow \nremove <name>");
+				break;
+			default:
+				System.out.println("In D1_Selector : did not find cmd \"" + words[1] + "\"");
+					
 		}
 	}
 }
