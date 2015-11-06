@@ -10,11 +10,15 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.Byte;
+import java.util.Scanner;
 
 
 public class EditBitMap {
 	public static void main(String[] args) throws IOException {
 		
+		Console.start();
+		
+		/*
 		BitMap lain = new BitMap("input",1);
 		Selector choice = new Selector(lain);
 		Demon belial = new Demon(choice);
@@ -23,6 +27,7 @@ public class EditBitMap {
 		belial.swap("1","2");
 		
 		lain.genNewBitMap("output");
+		*/
 	}
 }
 
@@ -440,28 +445,35 @@ class BitMap {
 //Holds a selection, and a pointer to the BitMap it came from
 //This pointer will keep an otherwise deleted BitMap alive in memory
 //When deleting an instance of bitmap, search through cluster instances as well.
-class Cluster {
-	BitMap map;
-	int[] selected;
-	
-	Cluster(BitMap map, int[] selected) {
-		this.map = map;
-		this.selected = selected;
-	}
-}
+
 
 class Selector {
-	BitMap map;
 	
-	int selectedCount;
+	//Data members
+	
+	BitMap target;
 	HashMap<String,Cluster> selection = new HashMap<String,Cluster>();
 	
-	Selector(BitMap target) {
-		this.map = target;
+	class Cluster {
+		BitMap map;
+		int[] selected;
+		
+		Cluster(BitMap map, int[] selected) {
+			this.map = map;
+			this.selected = selected;
+		}
 	}
 	
+	//Constructor
+	Selector(){}
+	Selector(BitMap target) {
+		this.target = target;
+	}
+	
+	//Functions
+	
 	void target(BitMap target) {
-		this.map = target;
+		this.target = target;
 	}
 	
 	void clear() {
@@ -483,13 +495,13 @@ class Selector {
 		boolean reverse = false;
 		if(options.contains("-rev")) {reverse = true;}
 		
-		selection.put(key, new Cluster(map,new int[map.pixels.length]));
+		selection.put(key, new Cluster(target,new int[target.pixels.length]));
 		int[] hold = selection.get(key).selected;
-		for(int i = 0; i< map.pixels.length; i++) {
+		for(int i = 0; i< target.pixels.length; i++) {
 			if(!reverse) {
 				hold[i] = i;
 			} else {
-				hold[i] = map.pixels.length - (i+1);
+				hold[i] = target.pixels.length - (i+1);
 			}
 		}
 		return key;
@@ -513,7 +525,7 @@ class Demon {
 			
 			
 			if(undoable) {
-				sel.map.histAdd();
+				sel.target.histAdd();
 			}
 			
 			if(sel.selection.containsKey(s)) {
@@ -522,11 +534,11 @@ class Demon {
 				for(int i = 0; i<hold.length; i++) {
 					if(Math.random() > .5) {
 						if(i-1 > 0) {
-							BitMap.swapByteArray(sel.map.pixels[hold[i]],sel.map.pixels[hold[i-1]]);
+							BitMap.swapByteArray(sel.target.pixels[hold[i]],sel.target.pixels[hold[i-1]]);
 						}
 					} else {
-						if(i+1 < sel.map.pixels.length) {
-							BitMap.swapByteArray(sel.map.pixels[hold[i]],sel.map.pixels[hold[i+1]]);
+						if(i+1 < sel.target.pixels.length) {
+							BitMap.swapByteArray(sel.target.pixels[hold[i]],sel.target.pixels[hold[i+1]]);
 						}
 					}
 				}
@@ -550,7 +562,7 @@ class Demon {
 				int[] hold2 = sel.selection.get(selIndex2[s]).selected;
 				
 				for(int i = 0; i<hold1.length && i<hold2.length; i++) {
-					BitMap.swapByteArray(sel.map.pixels[hold1[i]],sel.map.pixels[hold2[i]]);
+					BitMap.swapByteArray(sel.target.pixels[hold1[i]],sel.target.pixels[hold2[i]]);
 				}
 			} else {
 				System.out.println("ERROR, COULD NOT FIND SWAP PAIR (" + selIndex1[s] + "," + selIndex2[s] + ")");
@@ -581,11 +593,11 @@ class Demon {
  * 	**
  * 
  * 	BitMap new map from input   | Creates a new BitMap named "map" and reads input.bmp into it
- * 	Selector new lain  			| Creates a new selector
+ * 	Selector new sel  			| Creates a new selector
  *	Demon new belial   			| Creates a new demon called belial
  *
- *	lain targets map 			| Sets lain to target map instance of BitMap
- *	belial targets lain			| Sets belial to target lain's selections
+ *	sel targets map 			| Sets sel to target map instance of BitMap
+ *	belial targets sel			| Sets belial to target lain's selections
  *
  *	**
  *	
@@ -603,11 +615,11 @@ class Demon {
  *	
  *Ex:
  *	
- *	lain all 1 <option string> | Should call  lain.all(1,<option string>);
+ *	sel all 1 <option string> | Should call  sel.all(1,<option string>);
  *
  *	General form:
  *
- *	<Selector instance> <Selector method> <Cluster instance name> <Options String>
+ *		<Selector name> <Selector method> <Cluster instance name> <Options String>
  *
  *		The hardest part of getting it to work right will be matching required parameters to the correct places
  *		It might be easier just to simplify all functions to use required options instead of required parameters
@@ -622,11 +634,150 @@ class Demon {
  *		Demon function calls would be similarly syntax'd.
  * 
  */
+
+
 class Console {
 	
-	//HashMaps to hold instances of BitMaps, Selectors, and Demons.
-	HashMap<String,BitMap> maps = new HashMap<String,BitMap>();
-	HashMap<String,Selector> selectors = new HashMap<String,Selector>();
-	HashMap<String,Demon> demons = new HashMap<String,Demon>();
+	//Data Structures
 	
+	HashMap<String,BitMap> maps = new HashMap<String,BitMap>();
+	HashMap<String,Demon> demons = new HashMap<String,Demon>();
+	Selector sel = new Selector();
+	Scanner input = new Scanner(System.in);
+	
+	//primitive data members
+	
+	boolean exit = false;
+	String usrInput = "";
+	String words[];
+	
+	void in() {
+		this.usrInput = input.nextLine();
+		words = this.usrInput.split(" ");
+	}
+	
+	static void start() {
+		Console c = new Console();
+		
+		while(!c.exit) {
+			System.out.print("\n>");
+			c.in();
+			c.D0_Root();
+		}
+	}
+	
+	void SelectorTarget(String name) {
+		if(maps.containsKey(name)) {
+			System.out.println("targeting " + name + "...");
+			sel.target(maps.get(name));
+		} else {
+			System.out.println("Could not find BitMap " + name);
+			
+		}
+	}
+	
+	void addDemon(String name) {
+		if(!demons.containsKey(name)) {
+			demons.put(name, new Demon(sel));
+		} else {
+			System.out.println("Demon " + name + " already exists.");
+		}
+	}
+	
+	void addBitMap(String name) {
+		if(!maps.containsKey(name)) {
+			maps.put(name, new BitMap(name,1));
+			sel.target = maps.get(name);
+		} else {
+			System.out.println("BitMap " + name + " already exists.");
+		}
+	}
+	
+	void D0_Root() {
+
+		String word = this.words[0];
+		
+		switch(word) {
+			case("bitmap"):
+				D1_BitMap();
+				break;
+				
+			case("sel"):
+				D1_Selector();
+				break;
+			
+			case("target"):
+				SelectorTarget(this.usrInput.split(" ",2)[1]);
+				break;
+			
+			case("demon"):
+				D1_Demon();
+				break;
+			case("quit"):
+				System.out.println("Exiting...");
+				this.exit = true; 
+				break;
+			case("help"):
+				D1_help();
+				break;
+			default:
+				System.out.println("\"" + word + "\" not found. Try help :)");
+		}
+	}
+	
+	void D1_help() {
+		System.out.println("SHIT OUTTA LUCK BUDDY\nHAVNET IMPLEMENTED HELP YET");
+	}
+	
+	void D1_BitMap() {
+		
+		if(!(words.length > 2)) {
+			System.out.println("expecting more words");
+			return;
+		}
+		
+		switch(words[1]) {
+			case("add"):
+				addBitMap(this.usrInput.split(" ",3)[2]);
+				break;
+			case("remove"):
+				break;
+		}
+	}
+	
+	void D1_Demon() {
+		
+		if(!(words.length > 1)) {
+			System.out.println("expecting more words");
+			return;
+		}
+		
+		switch(words[1]) {
+		case("add"):
+			break;
+		case("remove"):
+			break;
+		}
+	}
+	
+	void D1_Selector() {
+		
+		if(!(words.length > 1)) {
+			System.out.println("expecting more words");
+			return;
+		}
+		
+		switch(this.words[1]) {
+		case("all"):
+			if(words.length == 3) {
+				sel.all(this.usrInput.split(" ",3)[2]);
+			} else {
+				sel.all(this.usrInput.split(" ",3)[2],this.usrInput.split(" ",3)[3]);
+			}
+			
+			break;
+		case(""):
+			break;
+		}
+	}
 }
