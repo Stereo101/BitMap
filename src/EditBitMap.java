@@ -21,18 +21,10 @@ import java.util.Scanner;
 public class EditBitMap {
 	public static void main(String[] args) throws IOException {
 		
+		//Console.unitTest();
+		
 		Console.start();
 		
-		/*
-		BitMap lain = new BitMap("input",1);
-		Selector choice = new Selector(lain);
-		Demon belial = new Demon(choice);
-		choice.all("1","-r");
-		choice.all("2");
-		belial.swap("1","2");
-		
-		lain.genNewBitMap("output");
-		*/
 	}
 }
 
@@ -50,7 +42,7 @@ class BitMap {
 	long NumberOfColors;
 	
 	long Compression;
-	long ImageSize;
+	long ImageSize = 0;
 	long XpixelsPerM;
 	
 	long YpixelsPerM;
@@ -112,7 +104,9 @@ class BitMap {
 			data = Files.readAllBytes(path.resolveSibling(name + ".bmp"));
 			
 		} catch (IOException e) {
-			e.printStackTrace();
+			//e.printStackTrace();
+			System.out.println("ERROR: BAD PATH");
+			return;
 		}
 		
 		FileSize = longFromRange(3,4,data);
@@ -654,7 +648,7 @@ class Console {
 	//Overload for automated input
 	void in(String input) {
 		this.usrInput = input;
-		words = this.usrInput.toLowerCase().split(" ");
+		words = this.usrInput.toLowerCase().trim().replaceAll(" +"," ").split(" ");
 		System.out.println("Read as words");
 		for(int i = 0; i< words.length; i++) {
 			System.out.print(words[i] + " | ");
@@ -665,12 +659,36 @@ class Console {
 	//Version for default usr input
 	void in() {
 		this.usrInput = input.nextLine();
-		words = this.usrInput.toLowerCase().split(" ");
+		words = this.usrInput.toLowerCase().trim().replaceAll(" +", " ").split(" ");
 		System.out.println("Read as words");
 		for(int i = 0; i< words.length; i++) {
 			System.out.print(words[i] + " | ");
 		}
 		System.out.println("\n");
+	}
+	
+	boolean wordCheck(int required, String message) {
+		if(this.words.length < required) {
+			System.out.println(message + " expected more words.");
+			return true;
+		}
+		return false;
+	}
+	
+	//SHIT UNIT TEST TO CHECK FOR OBVIOUS ISSUES
+	static void unitTest() {
+		Console c = new Console();
+		
+		String[] op1 = {"bitmap", "sel", "demon","help","target","legacy", " ","input", "garbage", "1","42","add","del","undo","help","show","remove","garbage"};
+		
+		for(String s : op1) {
+			for(String d : op1) {
+				for (String f : op1) {
+					c.in(s + " " + d + " " + f);
+					c.D0_Root();
+				}
+			}
+		}
 	}
 	
 	static void start() {
@@ -681,15 +699,6 @@ class Console {
 		c.D0_Root();
 		c.in("sel all 1");
 		c.D0_Root();
-		c.in("sel all 2");
-		c.D0_Root();
-		
-		/*
-		c.in("bitmap remove input");
-		c.D0_Root();
-		c.in("bitmap add input");
-		c.D0_Root();
-		*/
 		
 		while(!c.exit) {
 			System.out.print("\n>");
@@ -746,9 +755,15 @@ class Console {
 	
 	void addBitMap(String name) {
 		if(!maps.containsKey(name)) {
-			maps.put(name, new BitMap(name,1));
-			sel.target = maps.get(name);
-			System.out.println(maps.get(name).toString());
+			BitMap newMap = new BitMap(name,1);
+			if(newMap.ImageSize != 0) {
+				maps.put(name, new BitMap(name,1));
+				SelectorTarget(name);
+				System.out.println(maps.get(name).toString());
+			} else {
+				System.out.println("Failed to load BitMap");
+			}
+			
 		} else {
 			System.out.println("BitMap " + name + " already exists.");
 		}
@@ -756,7 +771,7 @@ class Console {
 	
 	void D0_Root() {
 		
-		if(words.length < 1) {System.out.println("In D0_Root : expected more words, did you just put a space or something?"); return;}
+		if(wordCheck(1,"In D0_Root :" + Thread.currentThread().getName())) {return;}
 		
 		switch(this.words[0]) {
 			case("bitmap"):
@@ -798,6 +813,7 @@ class Console {
 	
 	
 	void D1_BitMap() {
+		if(wordCheck(2,"In D1_BitMap : ")){return;}
 		
 		if(words[1] == "help") {
 			System.out.println("BitMap cmds: \nadd <name>\ndel <name>\nundo\nredo");
@@ -819,7 +835,12 @@ class Console {
 				break;
 			
 			case("undo"):
-				maps.get(words[2]).histUndo();
+				if(maps.containsKey(words[2])) {
+					maps.get(words[2]).histUndo();
+				} else {
+					System.out.println("Did not find BitMap" + words[2]);
+				}
+				
 				break;
 				
 			case("redo"):
@@ -831,57 +852,52 @@ class Console {
 	}
 	
 	void D1_Demon() {
-		
-		if(!(words.length > 1)) {
-			System.out.println("In D1_Demon: expecting more words");
-			return;
-		}
+
+		if(wordCheck(2,"In D1_Demon :")){return;}
 		
 		switch(words[1]) {
-		
 			case("add"):
+				if(wordCheck(3,"In D1_Demon_add : ")){return;}
 				addDemon(words[2]);
 				break;
-			
 			case("remove"):
+				if(wordCheck(3,"In D1_Demon_remove : ")){return;}
 				removeDemon(words[2]);
 				break;
 			case("help"):
 				System.out.println("Demon cmds: \nadd <name>\nremove <name>");
 				break;
-			
+			case("fuzz"):
+				break;
 			default:
 				System.out.println("In D1_Demon : did not find cmd \"" + words[1] + "\"");
+				break;
 			
 		}
 	}
 	
 	void D1_Selector() {
-		
-		if(!(words.length > 1)) {
-			System.out.println("In D1_Selector: expecting more words");
-			return;
-		}
+		if(wordCheck(2,"In D1_Selector : ")){return;}
 		
 		switch(this.words[1]) {
 			case("all"):
 				if(words.length <= 3) {
-					sel.all(this.usrInput.split(" ",3)[2]);
+					sel.all(words[2]);
 				} else {
-					sel.all(this.usrInput.split(" ",3)[2],this.usrInput.split(" ",3)[3]);
+					sel.all(words[2],usrInput.toLowerCase().trim().replaceAll(" +", " ").split(" ",4)[3]);
 				}
 				
-				System.out.println("Selection add to " + this.usrInput.split(" ",3)[2]);
+				System.out.println("Selection add to " + words[2]);
 			
 				break;
 			case("remove"):
+				if(wordCheck(3,"In D1_Selector_remove : ")){return;}
 				if(sel.selection.containsKey(this.words[2])) {
 					sel.selection.remove(words[2]);
 					System.out.println("Removed " + words[2]);
 				} else {
 					System.out.println("Did not find " + words[2]);
 				}
-			
 				break;
 			
 			case("show"):
