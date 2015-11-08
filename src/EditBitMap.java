@@ -158,7 +158,12 @@ class BitMap {
 	
 	//Creates a new bitmap in local directly
 	//Combines header and pixelArray back together into a valid bitmap
-	void genNewBitMap() throws IOException{genNewBitMap(outputName);}
+	void genNewBitMap() {try {
+		genNewBitMap(outputName);
+	} catch (IOException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}}
 	void genNewBitMap(String name) throws IOException {
 		outputName = name;
 		byte[] out = new byte[(int)FileSize];
@@ -373,6 +378,7 @@ class BitMap {
 	void histRedo() {
 		if(redos > 0) {
 			histCount++;
+			redos--;
 			pixels = deepCopyPixels(pixelsHistory[histCount]);
 		} else {
 			System.out.println("Could not redo");
@@ -462,6 +468,9 @@ class Selector {
 	}
 	
 	//Functions
+	void genFromCluster(String input) {
+		this.selection.get(input).map.genNewBitMap();
+	}
 	
 	void target(BitMap target) {
 		this.target = target;
@@ -520,16 +529,18 @@ class Demon {
 			}
 			
 			if(sel.selection.containsKey(s)) {
-				int[] hold = sel.selection.get(s).selected;
+				Cluster clus = sel.selection.get(s);
+				int[] hold = clus.selected;
+				
 				
 				for(int i = 0; i<hold.length; i++) {
 					if(Math.random() > .5) {
 						if(i-1 > 0) {
-							BitMap.swapByteArray(sel.target.pixels[hold[i]],sel.target.pixels[hold[i-1]]);
+							BitMap.swapByteArray(clus.map.pixels[hold[i]],clus.map.pixels[hold[i-1]]);
 						}
 					} else {
-						if(i+1 < sel.target.pixels.length) {
-							BitMap.swapByteArray(sel.target.pixels[hold[i]],sel.target.pixels[hold[i+1]]);
+						if(i+1 < clus.map.pixels.length) {
+							BitMap.swapByteArray(clus.map.pixels[hold[i]],clus.map.pixels[hold[i+1]]);
 						}
 					}
 				}
@@ -634,6 +645,8 @@ class Console {
 	HashMap<String,BitMap> maps = new HashMap<String,BitMap>();
 	HashMap<String,Demon> demons = new HashMap<String,Demon>();
 	Selector sel = new Selector();
+	Demon de = new Demon(sel);
+	
 	Scanner input = new Scanner(System.in);
 	
 	//primitive data members
@@ -647,8 +660,8 @@ class Console {
 	
 	//Overload for automated input
 	void in(String input) {
-		this.usrInput = input;
-		words = this.usrInput.toLowerCase().trim().replaceAll(" +"," ").split(" ");
+		this.usrInput = input.toLowerCase().trim().replaceAll(" +"," ");
+		words = this.usrInput.split(" ");
 		System.out.println("Read as words");
 		for(int i = 0; i< words.length; i++) {
 			System.out.print(words[i] + " | ");
@@ -658,8 +671,8 @@ class Console {
 	
 	//Version for default usr input
 	void in() {
-		this.usrInput = input.nextLine();
-		words = this.usrInput.toLowerCase().trim().replaceAll(" +", " ").split(" ");
+		this.usrInput = input.nextLine().toLowerCase().trim().replaceAll(" +"," ");
+		words = this.usrInput.split(" ");
 		System.out.println("Read as words");
 		for(int i = 0; i< words.length; i++) {
 			System.out.print(words[i] + " | ");
@@ -698,6 +711,8 @@ class Console {
 		c.in("bitmap add input");
 		c.D0_Root();
 		c.in("sel all 1");
+		c.D0_Root();
+		c.in("demon add de");
 		c.D0_Root();
 		
 		while(!c.exit) {
@@ -819,7 +834,7 @@ class Console {
 			System.out.println("BitMap cmds: \nadd <name>\ndel <name>\nundo\nredo");
 		}
 		
-		if(!(words.length > 2)) {
+		if(words.length < 2) {
 			System.out.println("In D1_BitMap : expecting more words");
 			return;
 		}
@@ -837,14 +852,20 @@ class Console {
 			case("undo"):
 				if(maps.containsKey(words[2])) {
 					maps.get(words[2]).histUndo();
+					maps.get(words[2]).genNewBitMap();
 				} else {
-					System.out.println("Did not find BitMap" + words[2]);
+					System.out.println("Did not find BitMap " + words[2]);
 				}
 				
 				break;
 				
-			case("redo"):
-				maps.get(words[2]).histRedo();
+			case("redo"):		
+				if(maps.containsKey(words[2])) {
+					maps.get(words[2]).histRedo();
+					maps.get(words[2]).genNewBitMap();
+				} else {
+					System.out.println("Did not find BitMap " + words[2]);
+				}
 				break;
 			default:
 				System.out.println("In D1_BitMap : did not find cmd \"" + words[1] + "\"");
@@ -856,6 +877,7 @@ class Console {
 		if(wordCheck(2,"In D1_Demon :")){return;}
 		
 		switch(words[1]) {
+			/*
 			case("add"):
 				if(wordCheck(3,"In D1_Demon_add : ")){return;}
 				addDemon(words[2]);
@@ -864,10 +886,22 @@ class Console {
 				if(wordCheck(3,"In D1_Demon_remove : ")){return;}
 				removeDemon(words[2]);
 				break;
+				
+			*/
 			case("help"):
 				System.out.println("Demon cmds: \nadd <name>\nremove <name>");
 				break;
 			case("fuzz"):
+				if(wordCheck(3,"In D1_Demon_fuzz : ")){return;}
+				if(words.length == 3) {
+					de.fuzz(words[2]);
+					sel.genFromCluster(words[2]);
+					
+				} else {
+					if(wordCheck(4,"In D1_Demon_fuzz : ")) {return;}
+					de.fuzz(words[2],this.usrInput.split(" ",4)[3]);
+					sel.genFromCluster(words[2]);
+				}
 				break;
 			default:
 				System.out.println("In D1_Demon : did not find cmd \"" + words[1] + "\"");
