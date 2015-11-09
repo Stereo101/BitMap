@@ -35,6 +35,43 @@ class Selector {
 		}
 	}
 	
+	static double pixDist(int pixela, int pixelb, int width) {
+		int xa= pixela % width;
+		int ya = pixela / width;
+		int xb= pixelb % width;
+		int yb = pixelb / width;
+		
+		return Math.pow(Math.pow(yb - ya, 2) + Math.pow(xb - xa, 2), .5);
+	}
+	
+	String circle(String key, String options) {
+		int len = this.target.pixels.length;
+		
+		int pixel = len/2 + 500;
+		int width = (int)this.target.Width;
+		
+		int[] selectAr = new int[len];
+		int index = 0;
+		
+		for(int i = 0; i<this.target.pixels.length; i++) {
+			if(pixDist(i,pixel,width)%2 < Math.sin(i*.4) || pixDist(i,pixel,width)%2 < Math.cos(i*.2) ) {
+				selectAr[index] = i;
+				index++;
+				//System.out.println("Added pix " + i);
+			}
+		}
+		
+		int[] fselectAr = new int[index];
+		for(int i = 0; i<index; i++) {
+			fselectAr[i] = selectAr[i];
+		}
+		
+		selection.put(key, new Cluster(target, fselectAr));
+		
+		return key;
+	}
+	
+	
 	String all(String key){return all(key,"");}
 	
 	String all(String key, String options){

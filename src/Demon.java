@@ -5,6 +5,37 @@ class Demon {
 	Demon(Selector target) {
 		this.sel = target;
 	}
+	
+	
+	//
+	//Black
+	//
+	
+	void black(String[] selIndex, String options) {
+		for(String s : selIndex) {
+			boolean undoable = options.contains("-u");
+			
+			
+			if(undoable) {
+				sel.target.histAdd();
+			}
+			
+			if(sel.selection.containsKey(s)) {
+				Cluster clus = sel.selection.get(s);
+				int[] hold = clus.selected;
+				
+				for(int i : hold) {
+					clus.map.pixels[i][0] = (byte) 0;
+					clus.map.pixels[i][1] = (byte) 0;
+					clus.map.pixels[i][2] = (byte) 0;
+				}
+			}
+		}
+	}
+	void black(String selIndex) {black(new String[]{selIndex},"");}
+	void black(String selIndex, String options) {black(new String[]{selIndex},options);}
+	
+	
 
 	//
 	//Fuzz
@@ -29,7 +60,7 @@ class Demon {
 							BitMap.swapByteArray(clus.map.pixels[hold[i]],clus.map.pixels[hold[i-1]]);
 						}
 					} else {
-						if(i+1 < clus.map.pixels.length) {
+						if(i+1 < hold.length) {
 							BitMap.swapByteArray(clus.map.pixels[hold[i]],clus.map.pixels[hold[i+1]]);
 						}
 					}

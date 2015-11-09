@@ -43,6 +43,8 @@ class BitMap {
 		b.append("Height ").append(Height).append("\n");
 		b.append("BitCount ").append(BitCount).append("\n");
 		
+		b.append("DataOffset ").append(DataOffset).append("\n");
+		
 		b.append("NumberOfColors ").append(NumberOfColors).append("\n");
 		b.append("ImageSize ").append(ImageSize).append("\n");
 		b.append("Number of pixels ").append(pixels.length).append("\n");
@@ -133,9 +135,10 @@ class BitMap {
 		
 		
 		pixels = new byte[(int)((FileSize - DataOffset)/(BitCount/8))][(int)BitCount/8];
-		for(int i = 0, t = 0; i<(int)((FileSize-DataOffset)/(BitCount/8)); i++) {
+		for(int i = 0, t = (int)DataOffset; i<(int)((FileSize-DataOffset)/(BitCount/8)); i++) {
 			for(int q = 0; q<(int)(BitCount/8); q++,t++) {
-				pixels[i][q] = data[(int)((double)t*slide)%(int)(FileSize-DataOffset)];
+				//pixels[i][q] = data[((int)((double)t*slide))%(int)(FileSize-DataOffset)];
+				pixels[i][q] = data[(t)];
 			}
 		}
 		

@@ -97,6 +97,11 @@ class Console {
 		c.in("demon add de");
 		c.D0_Root();
 		
+		
+		c.sel.circle("circle", "nooption");
+		c.in("demon black circle");
+		c.D0_Root();
+		
 		while(!c.exit) {
 			System.out.print("\n>");
 			c.in();
@@ -275,6 +280,21 @@ class Console {
 				break;
 				
 			*/
+		
+			case("black"):
+				if(wordCheck(3,"In D1_Demon_black : ")){return;}
+				
+				if(words.length == 3) {
+					de.black(words[2]);
+					sel.genFromCluster(words[2]);
+					
+				} else {
+					if(wordCheck(4,"In D1_Demon_black : ")) {return;}
+					de.black(words[2],this.usrInput.split(" ",4)[3]);
+					sel.genFromCluster(words[2]);
+				}
+				break;
+				
 			case("help"):
 				System.out.println("Demon cmds: \nadd <name>\nremove <name>");
 				break;
