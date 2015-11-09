@@ -60,14 +60,29 @@ class Console {
 		
 		String[] op1 = {"bitmap", "sel", "demon","help","target","legacy", " ","input", "garbage", "1","42","add","del","undo","help","show","remove","garbage"};
 		
-		for(String s : op1) {
-			for(String d : op1) {
-				for (String f : op1) {
-					c.in(s + " " + d + " " + f);
-					c.D0_Root();
+		System.out.println("Unit test started, entering " + (int)(Math.pow(op1.length,5)*2) + " commands total");
+		try {
+			Thread.sleep(4000);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		for(int i = 0; i < 2; i++) {
+			for(String s : op1) {
+				for(String d : op1) {
+					for (String f : op1) {
+						for(String w : op1) {
+							for (String e : op1) {
+								c.in(s + " " + d + " " + f + " " + w + " " + e);
+								c.D0_Root();
+							}
+						}
+					}
 				}
 			}
 		}
+		
 	}
 	
 	//Begins the console. To be called in Main
@@ -165,6 +180,7 @@ class Console {
 				break;
 			
 			case("target"):
+				if(wordCheck(2,"In D0_Root_target : ")){return;}
 				SelectorTarget(this.usrInput.split(" ",2)[1]);
 				break;
 			
@@ -208,15 +224,19 @@ class Console {
 		
 		switch(words[1]) {
 			case("add"):
+				if(wordCheck(3,"In D1_BitMap_add : ")){return;}
 				addBitMap(words[2]);
 				break;
 			
 			case("del"):
 			case("remove"):
+				if(wordCheck(3,"In D1_BitMap_remove : ")){return;}
 				removeBitMap(words[2]);
 				break;
 			
 			case("undo"):
+				if(wordCheck(3,"In D1_BitMap_undo : ")){return;}
+			
 				if(maps.containsKey(words[2])) {
 					maps.get(words[2]).histUndo();
 					maps.get(words[2]).genNewBitMap();
@@ -309,7 +329,6 @@ class Console {
 				break;
 			default:
 				System.out.println("In D1_Selector : did not find cmd \"" + words[1] + "\"");
-					
 		}
 	}
 }

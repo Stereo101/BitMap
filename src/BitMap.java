@@ -39,27 +39,41 @@ class BitMap {
 	public String toString() {
 		StringBuilder b = new StringBuilder();
 		
-		//b.append("reserved ").append(reserved).append("\n");
-		//b.append("DataOffset ").append(DataOffset).append("\n");
-		//b.append("Size ").append(Size).append("\n");
+		b.append("Width ").append(Width).append("\n");
+		b.append("Height ").append(Height).append("\n");
+		b.append("BitCount ").append(BitCount).append("\n");
+		
+		b.append("NumberOfColors ").append(NumberOfColors).append("\n");
+		b.append("ImageSize ").append(ImageSize).append("\n");
+		b.append("Number of pixels ").append(pixels.length).append("\n");
+		
+		return b.toString();
+	}
+	
+	public String VtoString() {
+		StringBuilder b = new StringBuilder();
+		
+		b.append("reserved ").append(reserved).append("\n");
+		b.append("DataOffset ").append(DataOffset).append("\n");
+		b.append("Size ").append(Size).append("\n");
 		
 		b.append("Width ").append(Width).append("\n");
 		b.append("Height ").append(Height).append("\n");
-		//b.append("Planes ").append(Planes).append("\n");
+		b.append("Planes ").append(Planes).append("\n");
 		
 		b.append("BitCount ").append(BitCount).append("\n");
 		b.append("NumberOfColors ").append(NumberOfColors).append("\n");
-		//b.append("Compression ").append(Compression).append("\n");
+		b.append("Compression ").append(Compression).append("\n");
 		
 		b.append("ImageSize ").append(ImageSize).append("\n");
-		//b.append("XpixelsPerM ").append(XpixelsPerM).append("\n");
-		//b.append("YpixelsPerM ").append(YpixelsPerM).append("\n");
+		b.append("XpixelsPerM ").append(XpixelsPerM).append("\n");
+		b.append("YpixelsPerM ").append(YpixelsPerM).append("\n");
 		
-		//b.append("ColorsUsed ").append(ColorsUsed).append("\n");
-		//b.append("ColorsImportant ").append(ColorsImportant).append("\n");
-		//b.append("SizeColorTable ").append(SizeColorTable).append("\n");
+		b.append("ColorsUsed ").append(ColorsUsed).append("\n");
+		b.append("ColorsImportant ").append(ColorsImportant).append("\n");
+		b.append("SizeColorTable ").append(SizeColorTable).append("\n");
 		
-		//b.append("Size Header ").append(Header.length).append("\n");
+		b.append("Size Header ").append(Header.length).append("\n");
 		b.append("Number of pixels ").append(pixels.length).append("\n");
 		
 		return b.toString();
@@ -81,7 +95,6 @@ class BitMap {
 			data = Files.readAllBytes(path.resolveSibling(name + ".bmp"));
 			
 		} catch (IOException e) {
-			//e.printStackTrace();
 			System.out.println("ERROR: BAD PATH");
 			return;
 		}
