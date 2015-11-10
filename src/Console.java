@@ -99,8 +99,11 @@ class Console {
 		
 		
 		c.sel.circle("circle", "nooption");
-		c.in("demon black circle");
-		c.D0_Root();
+		c.sel.box("box", "derp");
+		c.de.black(c.sel.box("box", "derp"));
+		c.maps.get("input").genNewBitMap();
+		//c.in("demon black circle");
+		//c.D0_Root();
 		
 		while(!c.exit) {
 			System.out.print("\n>");

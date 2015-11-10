@@ -44,6 +44,42 @@ class Selector {
 		return Math.pow(Math.pow(yb - ya, 2) + Math.pow(xb - xa, 2), .5);
 	}
 	
+	//
+	//Box
+	//
+	
+	String box(String key, String options) {
+		int len = this.target.pixels.length;
+		int width = (int)this.target.Width;
+		
+		int[] selectAr = new int[len];
+		int index = 0;
+		
+		int x = 0;
+		int y = 0;
+		int boxHeight = 400;
+		int boxWidth = 400;
+		
+		for(int i = 0; i<len; i++) {
+			if((i%width > width-boxWidth + x) && (i/width > width-boxHeight + y)) {
+				System.out.println(i);
+				selectAr[index] = i;
+				index++;
+			}
+		}
+		
+		int[] fselectAr = new int[index];
+		for(int i = 0; i<index; i++) {
+			fselectAr[i] = selectAr[i];
+		}
+		
+		selection.put(key, new Cluster(target, fselectAr));
+		return key;
+	}
+	
+	//
+	//Circle
+	//
 	String circle(String key, String options) {
 		int len = this.target.pixels.length;
 		
