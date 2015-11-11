@@ -52,6 +52,9 @@ class BitMap {
 		return b.toString();
 	}
 	
+	//More verbose toString
+	//Most of the extra things are useless
+	//Literally just 0 or 1 99% of the time
 	public String VtoString() {
 		StringBuilder b = new StringBuilder();
 		
@@ -173,6 +176,91 @@ class BitMap {
 		fos.close();
 	}
 	
+	void histAdd() {
+		histCount++;
+		pixelsHistory[histCount] = deepCopyPixels(pixels);
+		redos = 0;
+	}
+	
+	void histUndo() {
+		if(histCount > 0) {
+			histCount --;
+			redos ++;
+			pixels = deepCopyPixels(pixelsHistory[histCount]);
+		} else {
+			System.out.println("Could not undo");
+		}
+	}
+	
+	void histRedo() {
+		if(redos > 0) {
+			histCount++;
+			redos--;
+			pixels = deepCopyPixels(pixelsHistory[histCount]);
+		} else {
+			System.out.println("Could not redo");
+		}
+	}
+	
+	
+	////
+	////PURE FUNCTIONS
+	////
+	
+	//Reads in a number from string of bytes little endian
+	//Mainly used in the contructure to get values from the header
+	static long longFromRange(int start, int length, byte[] data) {
+		long shiftbuild = 0;
+		
+		for(int q = length; q>0; q--) {
+			shiftbuild = (long) (shiftbuild << 8 | data[start + q -2] & 0xFF);
+		}
+		//System.out.println(shiftbuild);
+		return shiftbuild;
+	}
+	
+	void swapByte(byte b1, byte b2) {
+		byte hold = b1;
+		b1 = b2;
+		b2 = hold;
+	}
+	
+	byte[] copyByteArray(byte[] in) {
+		byte[] out = new byte[in.length];
+		for(int i = 0; i<in.length; i++) {
+			out[i] = in[i];
+		}
+		
+		return out;
+	}
+	
+	static void swapByteArray(byte[] ar1, byte[] ar2) {
+		byte hold;
+		for(int i = 0; i<ar1.length; i++) {
+			hold = ar1[i];
+			ar1[i] = ar2[i];
+			ar2[i] = hold;
+		}
+	}
+	
+	byte[][] deepCopyPixels(byte[][] source) {
+		byte[][] copy = new byte[source.length][source[0].length];
+		for(int i = 0; i< source.length; i++) {
+			for(int q = 0; q < source[0].length; q++) {
+				copy[i][q] = source[i][q];
+			}
+		}
+		return copy;
+	}
+	
+	//
+	//
+	//
+	//OLD DEMONS
+	//
+	//
+	//
+
 	
 	//For Each Pixel, Flip Coin: Heads:Swap with previous; Tails:Swap with next;
 	void fuzzByPixelDemon(int repeat) {
@@ -352,80 +440,6 @@ class BitMap {
 		}
 	}
 	
-	void histAdd() {
-		histCount++;
-		pixelsHistory[histCount] = deepCopyPixels(pixels);
-		redos = 0;
-	}
-	
-	void histUndo() {
-		if(histCount > 0) {
-			histCount --;
-			redos ++;
-			pixels = deepCopyPixels(pixelsHistory[histCount]);
-		} else {
-			System.out.println("Could not undo");
-		}
-	}
-	
-	void histRedo() {
-		if(redos > 0) {
-			histCount++;
-			redos--;
-			pixels = deepCopyPixels(pixelsHistory[histCount]);
-		} else {
-			System.out.println("Could not redo");
-		}
-	}
 	
 	
-	////
-	////PURE FUNCTIONS
-	////
-	
-	//Reads in a number from string of bytes little endian
-	//Mainly used in the contructure to get values from the header
-	static long longFromRange(int start, int length, byte[] data) {
-		long shiftbuild = 0;
-		
-		for(int q = length; q>0; q--) {
-			shiftbuild = (long) (shiftbuild << 8 | data[start + q -2] & 0xFF);
-		}
-		//System.out.println(shiftbuild);
-		return shiftbuild;
-	}
-	
-	void swapByte(byte b1, byte b2) {
-		byte hold = b1;
-		b1 = b2;
-		b2 = hold;
-	}
-	
-	byte[] copyByteArray(byte[] in) {
-		byte[] out = new byte[in.length];
-		for(int i = 0; i<in.length; i++) {
-			out[i] = in[i];
-		}
-		
-		return out;
-	}
-	
-	static void swapByteArray(byte[] ar1, byte[] ar2) {
-		byte hold;
-		for(int i = 0; i<ar1.length; i++) {
-			hold = ar1[i];
-			ar1[i] = ar2[i];
-			ar2[i] = hold;
-		}
-	}
-	
-	byte[][] deepCopyPixels(byte[][] source) {
-		byte[][] copy = new byte[source.length][source[0].length];
-		for(int i = 0; i< source.length; i++) {
-			for(int q = 0; q < source[0].length; q++) {
-				copy[i][q] = source[i][q];
-			}
-		}
-		return copy;
-	}
 }

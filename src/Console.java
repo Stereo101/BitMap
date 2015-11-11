@@ -54,6 +54,10 @@ class Console {
 		return false;
 	}
 	
+	String trail(int n) {
+		return this.usrInput.toLowerCase().trim().replaceAll(" +", " ").split(" ",n+1)[n];
+	}
+	
 	//SHIT UNIT TEST TO CHECK FOR OBVIOUS ISSUES
 	static void unitTest() {
 		Console c = new Console();
@@ -64,7 +68,6 @@ class Console {
 		try {
 			Thread.sleep(4000);
 		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		
@@ -189,7 +192,7 @@ class Console {
 			
 			case("target"):
 				if(wordCheck(2,"In D0_Root_target : ")){return;}
-				SelectorTarget(this.usrInput.split(" ",2)[1]);
+					SelectorTarget(words[1]);
 				break;
 			
 			case("demon"):
@@ -293,7 +296,7 @@ class Console {
 					
 				} else {
 					if(wordCheck(4,"In D1_Demon_black : ")) {return;}
-					de.black(words[2],this.usrInput.split(" ",4)[3]);
+					de.black(words[2],trail(3));
 					sel.genFromCluster(words[2]);
 				}
 				break;
@@ -309,7 +312,7 @@ class Console {
 					
 				} else {
 					if(wordCheck(4,"In D1_Demon_fuzz : ")) {return;}
-					de.fuzz(words[2],this.usrInput.split(" ",4)[3]);
+					de.fuzz(words[2],trail(3));
 					sel.genFromCluster(words[2]);
 				}
 				break;
@@ -328,12 +331,13 @@ class Console {
 				if(words.length <= 3) {
 					sel.all(words[2]);
 				} else {
-					sel.all(words[2],usrInput.toLowerCase().trim().replaceAll(" +", " ").split(" ",4)[3]);
+					sel.all(words[2],trail(3));
 				}
 				
 				System.out.println("Selection add to " + words[2]);
 			
 				break;
+				
 			case("remove"):
 				if(wordCheck(3,"In D1_Selector_remove : ")){return;}
 				if(sel.selection.containsKey(this.words[2])) {
@@ -344,6 +348,10 @@ class Console {
 				}
 				break;
 			
+			case("box"):
+				if(wordCheck(3,""))
+				break;
+				
 			case("show"):
 				System.out.println(sel.selection.keySet());
 				break;

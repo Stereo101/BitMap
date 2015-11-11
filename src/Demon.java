@@ -97,5 +97,51 @@ class Demon {
 	void swap(String selIndex1, String selIndex2, String options) {swap(new String[]{selIndex1},new String[]{selIndex2}, options);}
 	void swap(String[] selIndex1, String[] selIndex2) {swap(selIndex1,selIndex2, "");}
 	
+	
+	//
+	//
+	//
+	//String Manipulation Functions
+	//
+	//
+	//
+	
+	static int intOp(String input, String option) {
+		String[] inputAr = input.split(option);
+		
+		int out = -999;
+		
+		if(inputAr.length >1) {
+			out = 0;
+			
+			for(int i = 0; Character.isDigit(inputAr[1].charAt(i)) && i<inputAr[1].length(); i++) {
+				out = out*10 + (int)(inputAr[1].charAt(i) - '0');
+			}
+		}
+		
+		return out;
+	}
+	
+	static double doubleOp(String input,String option) {
+		String[] inputAr = input.split(option);
+		
+		int out = -999;
+		int place = 0;
+		if(inputAr.length >1) {
+			boolean placeCount = false;
+			out = 0;
+			
+			for(int i = 0; (Character.isDigit(inputAr[1].charAt(i)) || inputAr[1].charAt(i) == '.') && i<inputAr[1].length(); i++) {
+				if(inputAr[1].charAt(i) == '.') {
+					placeCount = true;
+				} else {
+					out = out*10 + (int)(inputAr[1].charAt(i) - '0');
+					if(placeCount) {place++;};
+				}
+			}
+		}
+		
+		return out * Math.pow(10, -place);
+	}
 }
 
