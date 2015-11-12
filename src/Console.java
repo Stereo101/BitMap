@@ -97,16 +97,7 @@ class Console {
 		c.D0_Root();
 		c.in("sel all 1");
 		c.D0_Root();
-		c.in("demon add de");
-		c.D0_Root();
 		
-		
-		c.sel.circle("circle", "nooption");
-		c.sel.box("box", "derp");
-		c.de.black(c.sel.box("box", "derp"));
-		c.maps.get("input").genNewBitMap();
-		//c.in("demon black circle");
-		//c.D0_Root();
 		
 		while(!c.exit) {
 			System.out.print("\n>");
@@ -286,6 +277,35 @@ class Console {
 				break;
 				
 			*/
+					
+			case("color"):
+				if(wordCheck(3,"In D1_Demon_color : ")){return;}
+			
+				if(words.length == 3) {
+					de.color(words[2]);
+					sel.genFromCluster(words[2]);
+					//maps.get(words[2]).genNewBitMap();
+					
+				} else {
+					if(wordCheck(4,"In D1_Demon_color : ")) {return;}
+					de.color(words[2],trail(3));
+					sel.genFromCluster(words[2]);
+					//maps.get(words[2]).genNewBitMap();
+				}
+				break;
+		
+			case("fuzz"):
+				if(wordCheck(3,"In D1_Demon_fuzz : ")){return;}
+				if(words.length == 3) {
+					de.fuzz(words[2]);
+					sel.genFromCluster(words[2]);
+					
+				} else {
+					if(wordCheck(4,"In D1_Demon_fuzz : ")) {return;}
+					de.fuzz(words[2],trail(3));
+					sel.genFromCluster(words[2]);
+				}
+				break;
 		
 			case("black"):
 				if(wordCheck(3,"In D1_Demon_black : ")){return;}
@@ -304,18 +324,7 @@ class Console {
 			case("help"):
 				System.out.println("Demon cmds: \nadd <name>\nremove <name>");
 				break;
-			case("fuzz"):
-				if(wordCheck(3,"In D1_Demon_fuzz : ")){return;}
-				if(words.length == 3) {
-					de.fuzz(words[2]);
-					sel.genFromCluster(words[2]);
-					
-				} else {
-					if(wordCheck(4,"In D1_Demon_fuzz : ")) {return;}
-					de.fuzz(words[2],trail(3));
-					sel.genFromCluster(words[2]);
-				}
-				break;
+			
 			default:
 				System.out.println("In D1_Demon : did not find cmd \"" + words[1] + "\"");
 				break;

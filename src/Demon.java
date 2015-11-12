@@ -1,3 +1,4 @@
+import javax.xml.bind.DatatypeConverter;
 
 class Demon {
 	Selector sel;
@@ -5,6 +6,40 @@ class Demon {
 	Demon(Selector target) {
 		this.sel = target;
 	}
+	
+	//
+	//Color
+	//
+	
+	void color(String[] selIndex, String options) {
+		for(String s : selIndex) {
+			
+			
+			boolean undoable = options.contains("-u");
+			if(undoable) {
+				sel.target.histAdd();
+			}
+			
+			byte[] hexbyte = {0,0,0};
+			
+			if(options.contains("-0x")) {
+				hexbyte = DatatypeConverter.parseHexBinary(hexOp(options));
+			}
+			
+			if(sel.selection.containsKey(s)) {
+				Cluster clus = sel.selection.get(s);
+				int[] hold = clus.selected;
+				
+				for(int i : hold) {
+					clus.map.pixels[i][2] = hexbyte[0];
+					clus.map.pixels[i][1] = hexbyte[1];
+					clus.map.pixels[i][0] = hexbyte[2];
+				}
+			}
+		}
+	}
+	void color(String selIndex) {color(new String[]{selIndex},"");}
+	void color(String selIndex, String options) {color(new String[]{selIndex},options);}
 	
 	
 	//
@@ -105,6 +140,15 @@ class Demon {
 	//
 	//
 	//
+	
+	static String hexOp(String input) {
+		
+		String[] inputAr = input.split("-0x");
+		
+		String hex = (inputAr[1].substring(0, 6));
+		
+		return hex;
+	}
 	
 	static int intOp(String input, String option) {
 		String[] inputAr = input.split(option);

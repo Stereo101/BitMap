@@ -21,7 +21,12 @@ class Selector {
 	//
 	//
 	void genFromCluster(String input) {
-		this.selection.get(input).map.genNewBitMap();
+		if(this.selection.containsKey(input)) {
+			this.selection.get(input).map.genNewBitMap();
+		} else {
+			System.out.println("Key not found");
+		}
+		
 	}
 	
 	void target(BitMap target) {

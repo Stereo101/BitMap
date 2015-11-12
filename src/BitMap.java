@@ -146,6 +146,7 @@ class BitMap {
 		}
 		
 		pixelsHistory[0] = deepCopyPixels(pixels);
+		outputName = "output";
 	}
 	
 	
@@ -215,7 +216,6 @@ class BitMap {
 		for(int q = length; q>0; q--) {
 			shiftbuild = (long) (shiftbuild << 8 | data[start + q -2] & 0xFF);
 		}
-		//System.out.println(shiftbuild);
 		return shiftbuild;
 	}
 	
